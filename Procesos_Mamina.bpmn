@@ -1,0 +1,457 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_movimientos" targetNamespace="https://mamina.example/academico" exporter="Documentación académica Mamina">
+  <bpmn:collaboration id="Collaboration_movimientos">
+    <bpmn:participant id="External_movimientos" name="Proveedor o cliente externo"/>
+    <bpmn:participant id="Pool_movimientos" name="Mamina" processRef="Process_movimientos"/>
+    <bpmn:messageFlow id="msg1" sourceRef="External_movimientos" targetRef="m_capture" name="Datos externos"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_movimientos" isExecutable="false" name="Registro de operaciones de stock">
+    <bpmn:laneSet id="Lanes_movimientos">
+      <bpmn:lane id="Lane_operador" name="Personal operativo">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_capture</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_call</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_sistema" name="Sistema de stock">
+        <bpmn:flowNodeRef>m_validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_res</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_stock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_commit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_alert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end4</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_admin" name="Administración">
+        <bpmn:flowNodeRef>m_reject1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_reject2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end3</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Inicio">
+      <bpmn:outgoing>mf1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="m_capture" name="Registrar operación&#10;y datos de respaldo">
+      <bpmn:incoming>mf1</bpmn:incoming>
+      <bpmn:outgoing>mf2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="m_validate" name="Validar datos y&#10;permisos">
+      <bpmn:incoming>mf2</bpmn:incoming>
+      <bpmn:outgoing>mf3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="m_valid" name="¿Datos válidos?" gatewayDirection="Diverging">
+      <bpmn:incoming>mf3</bpmn:incoming>
+      <bpmn:outgoing>mf4</bpmn:outgoing>
+      <bpmn:outgoing>mf6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="m_reject1" name="Informar rechazo&#10;y motivo">
+      <bpmn:incoming>mf4</bpmn:incoming>
+      <bpmn:outgoing>mf5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="m_end1" name="Sin cambios">
+      <bpmn:incoming>mf5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="m_res" name="¿Es reserva o entrega?" gatewayDirection="Diverging">
+      <bpmn:incoming>mf6</bpmn:incoming>
+      <bpmn:outgoing>mf7</bpmn:outgoing>
+      <bpmn:outgoing>mf9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="m_call" name="Gestionar reservas&#10;Ver diagrama 2" calledElement="Process_reservas">
+      <bpmn:incoming>mf7</bpmn:incoming>
+      <bpmn:outgoing>mf8</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="m_end2" name="Reserva tratada">
+      <bpmn:incoming>mf8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="m_check" name="Comprobar saldo y&#10;reglas de stock">
+      <bpmn:incoming>mf9</bpmn:incoming>
+      <bpmn:outgoing>mf10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="m_stock" name="¿Operación posible?" gatewayDirection="Diverging">
+      <bpmn:incoming>mf10</bpmn:incoming>
+      <bpmn:outgoing>mf11</bpmn:outgoing>
+      <bpmn:outgoing>mf13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="m_reject2" name="Informar rechazo&#10;por regla o saldo">
+      <bpmn:incoming>mf11</bpmn:incoming>
+      <bpmn:outgoing>mf12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="m_end3" name="Sin cambios">
+      <bpmn:incoming>mf12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="m_commit" name="Registrar movimiento&#10;y actualizar stock">
+      <bpmn:incoming>mf13</bpmn:incoming>
+      <bpmn:outgoing>mf14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="m_alert" name="Recalcular disponible&#10;y alerta de mínimo">
+      <bpmn:incoming>mf14</bpmn:incoming>
+      <bpmn:outgoing>mf15</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="m_end4" name="Registro confirmado">
+      <bpmn:incoming>mf15</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="mf1" sourceRef="m_start" targetRef="m_capture" name=""/>
+    <bpmn:sequenceFlow id="mf2" sourceRef="m_capture" targetRef="m_validate" name=""/>
+    <bpmn:sequenceFlow id="mf3" sourceRef="m_validate" targetRef="m_valid" name=""/>
+    <bpmn:sequenceFlow id="mf4" sourceRef="m_valid" targetRef="m_reject1" name="No"/>
+    <bpmn:sequenceFlow id="mf5" sourceRef="m_reject1" targetRef="m_end1" name=""/>
+    <bpmn:sequenceFlow id="mf6" sourceRef="m_valid" targetRef="m_res" name="Sí"/>
+    <bpmn:sequenceFlow id="mf7" sourceRef="m_res" targetRef="m_call" name="Sí"/>
+    <bpmn:sequenceFlow id="mf8" sourceRef="m_call" targetRef="m_end2" name=""/>
+    <bpmn:sequenceFlow id="mf9" sourceRef="m_res" targetRef="m_check" name="No"/>
+    <bpmn:sequenceFlow id="mf10" sourceRef="m_check" targetRef="m_stock" name=""/>
+    <bpmn:sequenceFlow id="mf11" sourceRef="m_stock" targetRef="m_reject2" name="No"/>
+    <bpmn:sequenceFlow id="mf12" sourceRef="m_reject2" targetRef="m_end3" name=""/>
+    <bpmn:sequenceFlow id="mf13" sourceRef="m_stock" targetRef="m_commit" name="Sí"/>
+    <bpmn:sequenceFlow id="mf14" sourceRef="m_commit" targetRef="m_alert" name=""/>
+    <bpmn:sequenceFlow id="mf15" sourceRef="m_alert" targetRef="m_end4" name=""/>
+  </bpmn:process>
+  <bpmn:collaboration id="Collaboration_reservas">
+    <bpmn:participant id="External_reservas" name="Cliente del evento"/>
+    <bpmn:participant id="Pool_reservas" name="Mamina" processRef="Process_reservas"/>
+    <bpmn:messageFlow id="msg2" sourceRef="External_reservas" targetRef="r_capture" name="Pedido o cambio"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_reservas" isExecutable="false" name="Gestión de reservas para eventos">
+    <bpmn:laneSet id="Lanes_reservas">
+      <bpmn:lane id="Lane_eventos" name="Logística y eventos">
+        <bpmn:flowNodeRef>r_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_capture</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_res" name="Sistema de stock">
+        <bpmn:flowNodeRef>r_validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_end1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_action</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_new</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_cancel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_deliver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_alert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>r_end2</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="r_start" name="Inicio">
+      <bpmn:outgoing>rf1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="r_capture" name="Solicitar alta, cancelación&#10;o entrega de reserva">
+      <bpmn:incoming>rf1</bpmn:incoming>
+      <bpmn:outgoing>rf2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="r_validate" name="Comprobar estado,&#10;cantidad y stock">
+      <bpmn:incoming>rf2</bpmn:incoming>
+      <bpmn:outgoing>rf3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="r_valid" name="¿Solicitud válida?" gatewayDirection="Diverging">
+      <bpmn:incoming>rf3</bpmn:incoming>
+      <bpmn:outgoing>rf4</bpmn:outgoing>
+      <bpmn:outgoing>rf6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="r_reject" name="Notificar rechazo&#10;sin modificar stock">
+      <bpmn:incoming>rf4</bpmn:incoming>
+      <bpmn:outgoing>rf5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="r_end1" name="Rechazada">
+      <bpmn:incoming>rf5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="r_action" name="Acción solicitada" gatewayDirection="Diverging">
+      <bpmn:incoming>rf6</bpmn:incoming>
+      <bpmn:outgoing>rf7</bpmn:outgoing>
+      <bpmn:outgoing>rf8</bpmn:outgoing>
+      <bpmn:outgoing>rf9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="r_new" name="Crear reserva&#10;activa sin cambiar&#10;el físico">
+      <bpmn:incoming>rf7</bpmn:incoming>
+      <bpmn:outgoing>rf10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="r_cancel" name="Cancelar reserva&#10;y liberar&#10;lo apartado">
+      <bpmn:incoming>rf8</bpmn:incoming>
+      <bpmn:outgoing>rf11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="r_deliver" name="Registrar venta&#10;y cerrar reserva&#10;juntos">
+      <bpmn:incoming>rf9</bpmn:incoming>
+      <bpmn:outgoing>rf12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="r_merge" name="" gatewayDirection="Converging">
+      <bpmn:incoming>rf10</bpmn:incoming>
+      <bpmn:incoming>rf11</bpmn:incoming>
+      <bpmn:incoming>rf12</bpmn:incoming>
+      <bpmn:outgoing>rf13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="r_alert" name="Recalcular disponible&#10;y alerta y confirmar">
+      <bpmn:incoming>rf13</bpmn:incoming>
+      <bpmn:outgoing>rf14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="r_end2" name="Finalizada">
+      <bpmn:incoming>rf14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="rf1" sourceRef="r_start" targetRef="r_capture" name=""/>
+    <bpmn:sequenceFlow id="rf2" sourceRef="r_capture" targetRef="r_validate" name=""/>
+    <bpmn:sequenceFlow id="rf3" sourceRef="r_validate" targetRef="r_valid" name=""/>
+    <bpmn:sequenceFlow id="rf4" sourceRef="r_valid" targetRef="r_reject" name="No"/>
+    <bpmn:sequenceFlow id="rf5" sourceRef="r_reject" targetRef="r_end1" name=""/>
+    <bpmn:sequenceFlow id="rf6" sourceRef="r_valid" targetRef="r_action" name="Sí"/>
+    <bpmn:sequenceFlow id="rf7" sourceRef="r_action" targetRef="r_new" name="Alta"/>
+    <bpmn:sequenceFlow id="rf8" sourceRef="r_action" targetRef="r_cancel" name="Cancelar"/>
+    <bpmn:sequenceFlow id="rf9" sourceRef="r_action" targetRef="r_deliver" name="Entregar"/>
+    <bpmn:sequenceFlow id="rf10" sourceRef="r_new" targetRef="r_merge" name=""/>
+    <bpmn:sequenceFlow id="rf11" sourceRef="r_cancel" targetRef="r_merge" name=""/>
+    <bpmn:sequenceFlow id="rf12" sourceRef="r_deliver" targetRef="r_merge" name=""/>
+    <bpmn:sequenceFlow id="rf13" sourceRef="r_merge" targetRef="r_alert" name=""/>
+    <bpmn:sequenceFlow id="rf14" sourceRef="r_alert" targetRef="r_end2" name=""/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_movimientos">
+    <bpmndi:BPMNPlane id="Plane_movimientos" bpmnElement="Collaboration_movimientos">
+      <bpmndi:BPMNShape id="DI_External_movimientos" bpmnElement="External_movimientos" isHorizontal="true">
+        <dc:Bounds x="20" y="10" width="1160" height="70"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Pool_movimientos" bpmnElement="Pool_movimientos" isHorizontal="true">
+        <dc:Bounds x="20" y="120" width="1160" height="1215"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_operador" bpmnElement="Lane_operador" isHorizontal="false">
+        <dc:Bounds x="60" y="120" width="340" height="1215"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_sistema" bpmnElement="Lane_sistema" isHorizontal="false">
+        <dc:Bounds x="400" y="120" width="440" height="1215"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_admin" bpmnElement="Lane_admin" isHorizontal="false">
+        <dc:Bounds x="840" y="120" width="340" height="1215"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_start" bpmnElement="m_start">
+        <dc:Bounds x="180" y="175" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_capture" bpmnElement="m_capture">
+        <dc:Bounds x="100" y="260" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_validate" bpmnElement="m_validate">
+        <dc:Bounds x="490" y="260" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_valid" bpmnElement="m_valid" isMarkerVisible="true">
+        <dc:Bounds x="590" y="405" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_reject1" bpmnElement="m_reject1">
+        <dc:Bounds x="880" y="390" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_end1" bpmnElement="m_end1">
+        <dc:Bounds x="990" y="525" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_res" bpmnElement="m_res" isMarkerVisible="true">
+        <dc:Bounds x="590" y="555" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_call" bpmnElement="m_call" isExpanded="false">
+        <dc:Bounds x="100" y="555" width="260" height="100"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_end2" bpmnElement="m_end2">
+        <dc:Bounds x="210" y="715" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_check" bpmnElement="m_check">
+        <dc:Bounds x="490" y="700" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_stock" bpmnElement="m_stock" isMarkerVisible="true">
+        <dc:Bounds x="590" y="855" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_reject2" bpmnElement="m_reject2">
+        <dc:Bounds x="880" y="845" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_end3" bpmnElement="m_end3">
+        <dc:Bounds x="990" y="980" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_commit" bpmnElement="m_commit">
+        <dc:Bounds x="490" y="1000" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_alert" bpmnElement="m_alert">
+        <dc:Bounds x="490" y="1130" width="260" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_m_end4" bpmnElement="m_end4">
+        <dc:Bounds x="600" y="1240" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DI_mf1" bpmnElement="mf1">
+        <di:waypoint x="201" y="217"/>
+        <di:waypoint x="201" y="260"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf2" bpmnElement="mf2">
+        <di:waypoint x="360" y="302"/>
+        <di:waypoint x="490" y="302"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf3" bpmnElement="mf3">
+        <di:waypoint x="620" y="345"/>
+        <di:waypoint x="620" y="405"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf4" bpmnElement="mf4">
+        <di:waypoint x="650" y="435"/>
+        <di:waypoint x="880" y="435"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf5" bpmnElement="mf5">
+        <di:waypoint x="1011" y="475"/>
+        <di:waypoint x="1011" y="525"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf6" bpmnElement="mf6">
+        <di:waypoint x="620" y="465"/>
+        <di:waypoint x="620" y="555"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf7" bpmnElement="mf7">
+        <di:waypoint x="590" y="585"/>
+        <di:waypoint x="360" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf8" bpmnElement="mf8">
+        <di:waypoint x="231" y="655"/>
+        <di:waypoint x="231" y="715"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf9" bpmnElement="mf9">
+        <di:waypoint x="620" y="615"/>
+        <di:waypoint x="620" y="700"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf10" bpmnElement="mf10">
+        <di:waypoint x="620" y="785"/>
+        <di:waypoint x="620" y="855"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf11" bpmnElement="mf11">
+        <di:waypoint x="650" y="885"/>
+        <di:waypoint x="880" y="885"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf12" bpmnElement="mf12">
+        <di:waypoint x="1011" y="930"/>
+        <di:waypoint x="1011" y="980"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf13" bpmnElement="mf13">
+        <di:waypoint x="620" y="915"/>
+        <di:waypoint x="620" y="1000"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf14" bpmnElement="mf14">
+        <di:waypoint x="620" y="1085"/>
+        <di:waypoint x="620" y="1130"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_mf15" bpmnElement="mf15">
+        <di:waypoint x="620" y="1215"/>
+        <di:waypoint x="620" y="1240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_msg1" bpmnElement="msg1">
+        <di:waypoint x="350" y="80"/>
+        <di:waypoint x="350" y="260"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+<bpmndi:BPMNDiagram id="Diagram_reservas">
+    <bpmndi:BPMNPlane id="Plane_reservas" bpmnElement="Collaboration_reservas">
+      <bpmndi:BPMNShape id="DI_External_reservas" bpmnElement="External_reservas" isHorizontal="true">
+        <dc:Bounds x="20" y="10" width="1160" height="70"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Pool_reservas" bpmnElement="Pool_reservas" isHorizontal="true">
+        <dc:Bounds x="20" y="120" width="1160" height="1215"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_eventos" bpmnElement="Lane_eventos" isHorizontal="true">
+        <dc:Bounds x="60" y="120" width="1120" height="250"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_res" bpmnElement="Lane_res" isHorizontal="true">
+        <dc:Bounds x="60" y="370" width="1120" height="965"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_start" bpmnElement="r_start">
+        <dc:Bounds x="105" y="205" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_capture" bpmnElement="r_capture">
+        <dc:Bounds x="250" y="180" width="330" height="90"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_validate" bpmnElement="r_validate">
+        <dc:Bounds x="250" y="420" width="330" height="100"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_valid" bpmnElement="r_valid" isMarkerVisible="true">
+        <dc:Bounds x="390" y="610" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_reject" bpmnElement="r_reject">
+        <dc:Bounds x="110" y="800" width="250" height="100"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_end1" bpmnElement="r_end1">
+        <dc:Bounds x="215" y="990" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_action" bpmnElement="r_action" isMarkerVisible="true">
+        <dc:Bounds x="720" y="610" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_new" bpmnElement="r_new">
+        <dc:Bounds x="470" y="790" width="205" height="110"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_cancel" bpmnElement="r_cancel">
+        <dc:Bounds x="710" y="790" width="205" height="110"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_deliver" bpmnElement="r_deliver">
+        <dc:Bounds x="950" y="790" width="205" height="110"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_merge" bpmnElement="r_merge" isMarkerVisible="true">
+        <dc:Bounds x="785" y="1000" width="60" height="60"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_alert" bpmnElement="r_alert">
+        <dc:Bounds x="670" y="1130" width="300" height="85"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_r_end2" bpmnElement="r_end2">
+        <dc:Bounds x="800" y="1240" width="42" height="42"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DI_rf1" bpmnElement="rf1">
+        <di:waypoint x="147" y="226"/>
+        <di:waypoint x="250" y="226"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf2" bpmnElement="rf2">
+        <di:waypoint x="415" y="270"/>
+        <di:waypoint x="415" y="420"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf3" bpmnElement="rf3">
+        <di:waypoint x="420" y="520"/>
+        <di:waypoint x="420" y="610"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf4" bpmnElement="rf4">
+        <di:waypoint x="390" y="640"/>
+        <di:waypoint x="235" y="640"/>
+        <di:waypoint x="235" y="800"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf5" bpmnElement="rf5">
+        <di:waypoint x="236" y="900"/>
+        <di:waypoint x="236" y="990"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf6" bpmnElement="rf6">
+        <di:waypoint x="450" y="640"/>
+        <di:waypoint x="720" y="640"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf7" bpmnElement="rf7">
+        <di:waypoint x="735" y="655"/>
+        <di:waypoint x="572" y="710"/>
+        <di:waypoint x="572" y="790"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf8" bpmnElement="rf8">
+        <di:waypoint x="750" y="670"/>
+        <di:waypoint x="812" y="740"/>
+        <di:waypoint x="812" y="790"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf9" bpmnElement="rf9">
+        <di:waypoint x="780" y="640"/>
+        <di:waypoint x="1052" y="640"/>
+        <di:waypoint x="1052" y="790"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf10" bpmnElement="rf10">
+        <di:waypoint x="572" y="900"/>
+        <di:waypoint x="572" y="1030"/>
+        <di:waypoint x="785" y="1030"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf11" bpmnElement="rf11">
+        <di:waypoint x="812" y="900"/>
+        <di:waypoint x="812" y="1000"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf12" bpmnElement="rf12">
+        <di:waypoint x="1052" y="900"/>
+        <di:waypoint x="1052" y="1030"/>
+        <di:waypoint x="845" y="1030"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf13" bpmnElement="rf13">
+        <di:waypoint x="815" y="1060"/>
+        <di:waypoint x="815" y="1130"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_rf14" bpmnElement="rf14">
+        <di:waypoint x="821" y="1215"/>
+        <di:waypoint x="821" y="1240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_msg2" bpmnElement="msg2">
+        <di:waypoint x="415" y="80"/>
+        <di:waypoint x="415" y="180"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
